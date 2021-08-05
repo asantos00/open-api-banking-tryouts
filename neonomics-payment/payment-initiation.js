@@ -18,8 +18,10 @@ const NeonomicsAPI = {
       ]
     }).then(r => r.json())
     .then(authResponse => {
+      console.log(authResponse)
       this.token = authResponse;
     })
+    .catch(e => console.error(e))
   },
 
   getBanks() {
@@ -57,8 +59,8 @@ const NeonomicsAPI = {
         ['Authorization',  `Bearer ${this.token.access_token}`],
         ['x-device-id', 'test-device-id'],
         ['x-psu-ip-address', await getIP()],
-        ['x-session-id', this.sessionId]
-        // ['x-redirect-url', 'https://f8dd1d7be728.ngrok.io/pay'],
+        ['x-session-id', this.sessionId],
+        ['x-redirect-url', 'https://tx723rmp7d.sharedwithexpose.com/callback'],
       ]
     }).then(r => r.json())
     .then(r => {
@@ -164,6 +166,8 @@ const MY_BANK = {
 
 // console.log(await NeonomicsAPI.getBanks());
 
+// throw new Error('banks')
+
 await NeonomicsAPI.createSessionInBank(MY_BANK.id);
 console.log(await NeonomicsAPI.getAccountData());
 
@@ -172,6 +176,7 @@ if(!confirm('do you already have consent?')) {
 }
 
 
+//https://developer.neonomics.io/documentation/payments/domestic-transfer
 console.log(await NeonomicsAPI.pay());
 
 const paymentId = prompt('\npaymentId\n:');

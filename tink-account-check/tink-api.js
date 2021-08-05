@@ -7,9 +7,10 @@ export const TinkAPI = {
 
   auth(code) {
     console.log('starting auth');
-    // if (this.token) {
-    //   return this.token;
-    // }
+    if (this.token) {
+      console.log('Already have a token')
+      return this.token;
+    }
 
     const form = new URLSearchParams()
 
@@ -48,7 +49,57 @@ export const TinkAPI = {
     }).then(r => r.json())
   },
 
-  pay({ amount }) {
+  createSession({ fromIban }) {
+    return fetch(`${this.baseURL}/link/v1/session`, {
+      method: 'POST',
+      headers: [
+        ['Authorization', `Bearer ${this.token.access_token}`],
+        ['Content-Type', 'application/json']
+      ],
+      body: JSON.stringify({ source_account_number: `iban://${fromIban}` })
+    }).then(r => r.json())
+  },
+
+  checkPaymentRequest(id) {
+    return fetch(`${this.baseURL}/api/v1/payments/requests/${id}`, {
+      headers: [
+        ['Authorization', `Bearer ${this.token.access_token}`],
+        ['Content-Type', 'application/json']
+      ],
+    }).then(r => r.json())
+  },
+
+  checkPaymentRequestTransfers(id) {
+    return fetch(`${this.baseURL}/api/v1/payments/requests/${id}/transfers`, {
+      headers: [
+        ['Authorization', `Bearer ${this.token.access_token}`],
+        ['Content-Type', 'application/json']
+      ],
+    }).then(r => r.json())
+  },
+
+  getAllTransfers() {
+    return fetch(`${this.baseURL}/api/v1/payments/requests/all`, {
+      method: 'POST',
+      headers: [
+        ['Authorization', `Bearer ${this.token.access_token}`],
+        ['Content-Type', 'application/json']
+      ],
+      body: JSON.stringify({ date: '2021-08-04' })
+    }).then(r => r.json())
+  },
+
+  providers({ market }) {
+    return fetch(`${this.baseURL}/api/v1/providers/${market}`, {
+      headers: [
+        ['Authorization', `Bearer ${this.token.access_token}`],
+        ['Content-Type', 'application/json']
+      ],
+    }).then(r => r.json())
+  },
+
+  // https://docs.tink.com/resources/tink-link-web/tink-link-web-api-reference-payment-initiation
+  pay({ amount, recipient, toIban }) {
     return fetch(`${this.baseURL}/api/v1/payments/requests`, {
       method: 'POST',
       body: JSON.stringify(
@@ -56,14 +107,14 @@ export const TinkAPI = {
         {
           "destinations": [
              {
-                "accountNumber": "PT57099843891892236827523",
+                "accountNumber": toIban,
                 "type": "iban"
              }
           ],
-          "amount": 10,
+          "amount": amount,
           "currency": "EUR",
           "market": "PT",
-          "recipientName": "pt-test-open-banking-redirect-payment-successful",
+          "recipientName": recipient,
           "remittanceInformation": {
              "type": "UNSTRUCTURED",
              "value": "Top-up"
